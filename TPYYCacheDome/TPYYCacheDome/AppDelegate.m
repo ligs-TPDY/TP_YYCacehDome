@@ -8,6 +8,8 @@
 
 #import "AppDelegate.h"
 
+#import "YYCache/YYCache.h"
+
 @interface AppDelegate ()
 
 @end
@@ -16,7 +18,19 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+    
+    YYCache *cache = [YYCache cacheWithName:@"User"];
+    
+    [cache setObject:@"213" forKey:@"User_小明"];
+    [cache setObject:@"214" forKey:@"User_小蓝"];
+    [cache setObject:@"215" forKey:@"User_小丽"];
+    [cache setObject:@"216" forKey:@"User_小春"];
+    [cache setObject:@"217" forKey:@"User_小林"];
+    
+    [cache containsObjectForKey:@"User_小林" withBlock:^(NSString * _Nonnull key, BOOL contains) {
+        
+    }];
+    
     return YES;
 }
 

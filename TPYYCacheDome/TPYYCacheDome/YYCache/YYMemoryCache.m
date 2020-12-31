@@ -15,7 +15,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <pthread.h>
 
-
+/// 解释文章 https://zhuanlan.zhihu.com/p/132726037
 static inline dispatch_queue_t YYMemoryCacheGetReleaseQueue() {
     return dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0);
 }
@@ -30,7 +30,7 @@ static inline dispatch_queue_t YYMemoryCacheGetReleaseQueue() {
     __unsafe_unretained _YYLinkedMapNode *_next; // retained by dic
     id _key;
     id _value;
-    NSUInteger _cost;
+    NSUInteger _cost; /// 大小
     NSTimeInterval _time;
 }
 @end
@@ -55,6 +55,18 @@ static inline dispatch_queue_t YYMemoryCacheGetReleaseQueue() {
     BOOL _releaseOnMainThread;
     BOOL _releaseAsynchronously;
 }
+
+/** 说明
+ _dic = [node1,node2,node3,node4];
+ 
+ _head = node2
+ 
+ _tail = node3
+ 
+ 链表 node2->node1->node4->node3
+ 
+ 精华在理解链表对node的操作
+ */
 
 /// Insert a node at head and update the total cost.
 /// Node and node.key should not be nil.
@@ -91,14 +103,20 @@ static inline dispatch_queue_t YYMemoryCacheGetReleaseQueue() {
 }
 
 - (void)insertNodeAtHead:(_YYLinkedMapNode *)node {
+    /// 添加
     CFDictionarySetValue(_dic, (__bridge const void *)(node->_key), (__bridge const void *)(node));
+    /// 统计总大小
     _totalCost += node->_cost;
+    /// 统计总个数
     _totalCount++;
+    
+    /// 存在表头
     if (_head) {
+        /// 将新的node放在链表的头部
         node->_next = _head;
         _head->_prev = node;
         _head = node;
-    } else {
+    } else { /// 不存在，此时链表为空。
         _head = _tail = node;
     }
 }
@@ -121,8 +139,11 @@ static inline dispatch_queue_t YYMemoryCacheGetReleaseQueue() {
 
 - (void)removeNode:(_YYLinkedMapNode *)node {
     CFDictionaryRemoveValue(_dic, (__bridge const void *)(node->_key));
+    /// 统计总大小
     _totalCost -= node->_cost;
+    /// 统计总个数
     _totalCount--;
+    
     if (node->_next) node->_next->_prev = node->_prev;
     if (node->_prev) node->_prev->_next = node->_next;
     if (_head == node) _head = node->_next;
@@ -133,7 +154,9 @@ static inline dispatch_queue_t YYMemoryCacheGetReleaseQueue() {
     if (!_tail) return nil;
     _YYLinkedMapNode *tail = _tail;
     CFDictionaryRemoveValue(_dic, (__bridge const void *)(_tail->_key));
+    /// 统计总大小
     _totalCost -= _tail->_cost;
+    /// 统计总个数
     _totalCount--;
     if (_head == _tail) {
         _head = _tail = nil;
